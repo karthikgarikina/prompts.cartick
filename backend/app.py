@@ -1,25 +1,44 @@
 from flask import Flask, request, jsonify, render_template
-import json
-from prompts import generate_prompt
+import os
+import psycopg2
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
-USAGE_FILE = "usage_counter.json"
+# --- Database Connection ---
+DATABASE_URL = os.environ.get("DATABASE_URL")
+db_conn = psycopg2.connect(DATABASE_URL)
 
-# Load / save usage count
+def setup_database():
+    with db_conn.cursor() as cur:
+        # Create table if it doesn't exist
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS usage (
+                id INT PRIMARY KEY,
+                count INT NOT NULL
+            );
+        """)
+        # Insert the initial row if it doesn't exist
+        cur.execute("INSERT INTO usage (id, count) VALUES (1, 0) ON CONFLICT (id) DO NOTHING;")
+        db_conn.commit()
+
+# --- New functions to read/write from the database ---
 def load_usage():
-    try:
-        with open(USAGE_FILE, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {"count": 0}
+    with db_conn.cursor() as cur:
+        cur.execute("SELECT count FROM usage WHERE id = 1;")
+        # Fetchone() returns a tuple, e.g., (111,)
+        result = cur.fetchone()
+        return result[0] if result else 0
 
-def save_usage(data):
-    with open(USAGE_FILE, "w") as f:
-        json.dump(data, f)
+def save_usage(current_count):
+    with db_conn.cursor() as cur:
+        cur.execute("UPDATE usage SET count = %s WHERE id = 1;", (current_count,))
+        db_conn.commit()
 
-usage_data = load_usage()
-usage_count = usage_data.get("count", 0)
+# Run setup once when the app starts
+setup_database()
+# Load initial count from DB
+usage_count = load_usage()
+
 
 @app.route("/")
 def home():
@@ -27,6 +46,7 @@ def home():
 
 @app.route("/generate", methods=["POST"])
 def generate():
+    from prompts import generate_prompt # Keep import here for now
     global usage_count
     data = request.get_json()
     goal = data.get("goal", "").strip()
@@ -37,7 +57,7 @@ def generate():
 
     prompt = generate_prompt(goal, tool)
     usage_count += 1
-    save_usage({"count": usage_count})
+    save_usage(usage_count) # Save the new count to the database
 
     return jsonify({
         "generated_prompt": prompt,
@@ -46,6 +66,8 @@ def generate():
 
 @app.route("/usage", methods=["GET"])
 def usage():
+    # To ensure it's always fresh, you could load it again here
+    # current_usage = load_usage()
     return jsonify({"count": usage_count})
 
 if __name__ == "__main__":
