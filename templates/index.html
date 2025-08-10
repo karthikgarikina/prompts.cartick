@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Generator</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* Loader CSS */
+    .loader {
+      border: 5px solid #f3f3f3; /* Light grey */
+      border-top: 5px solid #3498db; /* Blue */
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1.5s linear infinite;
+      display: none; /* Hidden by default */
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Style for disabled button */
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h2 id="title">cartick prompts</h2>
+    <h2 id="usageCount">Total Prompts Generated: 0</h2>
+    <button id="knowMeBtn">About this tool</button>
+    <div id="features" style="display: none;">
+      <p style="text-align:center;" >Cartick.Prompts.v1.</p>
+      <p style="text-align:center;" >my very first and basic release</p><br><br>
+      <p>Purpose - A prompt generation tool that helps you create high-quality prompts for AI tools like ChatGPT, Gemini, and more.</p><br>
+      <p>Why it matters - In AI, better prompts = better results. This tool fills the gap by giving you well-structured, impactful prompts.</p><br>
+      <p>Model used - Currently powered by a small model, so results may sometimes fall short of your exact expectations.</p><br>
+      <p>Featue Version - It may feel basic, but future versions will be smarter, more creative and this will be your daily go-to tool for making AI work for you.</p>
+
+    </div>
+  </div>
+
+  <h1 id="wish">Hello Prompter👋, I'll be your prompt engineer. My job? Making AI make sense.</h1>
+
+  <div class="output-area">
+    <div id="loader" class="loader"></div>
+    <textarea id="generatedPrompt" placeholder="Your generated prompt will appear here..." readonly></textarea>
+    <div onclick="copytext()" class="copy-icon"> <i class="fa-solid fa-copy"></i> </div>
+  </div>
+
+  <form id="promptForm" class="input-container">
+    <textarea id="goalInput" placeholder="Just enter the core subject... e.g., a man wakling in the road. then select Category " required></textarea>
+    <div class="tool-selection">
+      <select id="toolSelect" required>
+        <option value="">-- Select Category --</option>
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+        <option value="code">Code</option>
+        <option value="other">Others</option>
+      </select>
+      <input type="text" id="otherToolInput" placeholder="Specify tool (e.g., Gemini)" style="display: none; margin-top: 5px;" />
+     </div>
+    <button type="submit">Generate Prompt</button>
+  </form>
+
+  <script>
+    function copytext() {
+      const textToCopy = document.getElementById('generatedPrompt').value.trim();
+      console.log(textToCopy);
+
+      if (!textToCopy) {  
+          alert('No prompt generated!');
+          return;
+      }
+
+      navigator.clipboard.writeText(textToCopy)
+        alert('Your prompt copied to clipboard!');
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.getElementById("promptForm");
+      const goalInput = document.getElementById("goalInput");
+      const toolSelect = document.getElementById("toolSelect");
+      const otherToolInput = document.getElementById("otherToolInput");
+      const outputField = document.getElementById("generatedPrompt");
+      const usageCountDisplay = document.getElementById("usageCount");
+      const knowMeBtn = document.getElementById("knowMeBtn");
+      const features = document.getElementById("features");
+      const wish = document.getElementById("wish");
+      // Get loader and submit button elements
+      const loader = document.getElementById("loader");
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      knowMeBtn.addEventListener("click", () => {
+        features.style.display = features.style.display === "none" ? "block" : "none";
+      });
+
+      fetch("/usage")
+        .then(res => res.json())
+        .then(data => {
+          usageCountDisplay.textContent = `Total Generated Prompts: ${data.count}`;
+        })
+        .catch(error => console.error('Error fetching initial usage count:', error));
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const goal = goalInput.value.trim();
+        const selectedTool = toolSelect.value;
+        const tool = selectedTool === "other" ? otherToolInput.value.trim() : selectedTool;
+        
+        // --- Start loading state ---
+        wish.style.display = "none"; // Hide wish
+        outputField.value = ""; // Clear previous result
+        loader.style.display = "block"; // Show loader
+        submitBtn.disabled = true; // Disable button
+        submitBtn.textContent = "Generating..."; // Change button text
+
+        fetch("/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ goal, tool })
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          outputField.value = data.generated_prompt;
+          usageCountDisplay.textContent = `Total Prompts Generated: ${data.usage_count}`;
+        })
+        .catch(error => {
+          console.error("Fetch Error:", error);
+          outputField.value = "Sorry, an error occurred while generating the prompt. Please try again.";
+        })
+        .finally(() => {
+          // --- End loading state ---
+          loader.style.display = "none"; // Hide loader
+          submitBtn.disabled = false; // Re-enable button
+          submitBtn.textContent = "Generate Prompt"; // Restore button text
+        });
+      });
+
+
+
+      
+    });
+  </script>
+</body>
+</html>

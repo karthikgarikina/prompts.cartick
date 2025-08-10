@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Playwrite+AU+QLD&family=Rock+Salt&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+* {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #131314;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .top-bar {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #title{
+      font-size:60px;
+      font-family: "Caveat", cursive;
+  
+      background: linear-gradient(90deg, #ff00dd, #0073ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    #usageCount, #knowMeBtn {
+      margin: 10px 0;
+    }
+    #usageCount{
+      font-size: 14px;
+    }
+    #knowMeBtn{
+      padding: 5px;
+      border-radius: 5px;
+    }
+
+    #features {
+      left: 10%;
+      right: 10%;
+      text-align: left;
+      justify-content: center;
+      align-items: center;
+      background-color: #1e1f20;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #444746;
+      display: none;
+    }
+    #features p{
+      margin-left: 30px;
+    }
+
+    #wish {
+      margin: 20px 0;
+      font-size: 1.5em;
+      text-align: center;
+    }
+
+    .output-area {
+      margin: 10px 0;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    #generatedPrompt {
+      width: 100%;
+      height: 150px;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #1e1f20;
+      color: #e0e0e0;
+      border: 1px solid #444746;
+      border-radius: 12px;
+      resize: none;
+      min-height: 80px;
+    }
+    .copy-icon{
+      cursor: pointer;
+    }
+
+    .input-container {
+      width: 100%;
+      max-width: 800px;
+      background-color: #1e1f20;
+      border: 1px solid #444746;
+      border-radius: 28px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tool-selection {
+      display: flex;
+      gap: 10px;
+    }
+
+    select, input[type="text"] {
+      background-color: #333435;
+      color: #e0e0e0;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    #goalInput {
+      background: transparent;
+      color: #e0e0e0;
+      font-size: 16px;
+      border: none;
+      resize: none;
+      padding: 8px;
+      height: 100px;
+      border-bottom: 1px solid #444;
+    }
+
+    button[type="submit"] {
+      background-color: #333435;
+      color: #e0e0e0;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s ease;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #444;
+    }
